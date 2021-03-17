@@ -3,10 +3,9 @@
     :mapConfig="mapConfig"
     apiKey=""
   >
-  // insert your google maps api key to render styled map
     <template slot-scope="{ google, map }">
       <GoogleMapMarker
-        v-for="marker in markers"
+        v-for="marker in inp_markers"
         :key="marker.id"
         :marker="marker"
         :google="google"
@@ -28,29 +27,12 @@ export default {
     GoogleMapMarker
   },
   props: {
-    id: {
-      type: String,
-      required: true
-    },
-    lat: {
-      type: Number,
-      required: true
-    },
-    long: {
-      type: Number,
+    inp_markers: {
+      type: Array,
       required: true
     }
   },
   computed: {
-    markers() {
-        return [{
-            id: this.id,
-            position: {
-                lat: this.lat,
-                lng: this.long
-            }
-        }]
-    },
     mapConfig() {
       return {
         ...mapSettings,
@@ -58,8 +40,21 @@ export default {
       };
     },
     mapCenter() {
-      return this.markers[0]? this.markers[0].position: null;
-    }
+      if(!Boolean(this.inp_markers[0]))
+       return null;
+      if(this.inp_markers.length == 1)
+        return this.inp_markers[0].position;
+      
+      let cent_lat = 0, cent_lng = 0, n = this.inp_markers.length;
+      this.inp_markers.forEach(el => {
+        cent_lat += el.position.lat;
+        cent_lng += el.position.lng;
+      });
+      return {
+        "lat": cent_lat/n,
+        "lng": cent_lng/n
+      };
+    },
   }
 };
 </script>

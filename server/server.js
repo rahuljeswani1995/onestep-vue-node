@@ -16,13 +16,12 @@ let deviceShowStatus = {};
 API_URL = "https://track.onestepgps.com/v3/api/public/device?latest_point=true&api-key=kRi4X4Dc-_Ly02gWiDPUtlUL3_A-tqmMsALrpqvlQnM"
 
 app.get('/events', (req, res) => {
-    
     axios.get(API_URL)
     .then(response => {
       const rawResponse = response.data;
       const mappedResponse = rawResponse.result_list.reduce((acc, el) => {     
         if(deviceShowStatus[el.device_id] != false){
-            acc.push({"device_id": el.device_id, "display_name": el.display_name, "active_state": el.active_state, "latest_device_point":el.latest_device_point});
+            acc.push({"device_id": el.device_id, "display_name": el.display_name, "active_state": el.active_state, "device_lat":el.latest_device_point.lat, "device_lng":el.latest_device_point.lng});
         }
         return acc;    
     }, []);
@@ -34,13 +33,14 @@ app.get('/events', (req, res) => {
     });
 });
 
-app.get('/events/:id', (req, res) => {
-    const device_id = req.params.id;
+app.get('/get-device', (req, res) => {
+    console.log(req.query);
+    const device_id = req.query.id;
     // console.log(device_id);
     axios.get(API_URL)
     .then(response => {
       const rawResponse = response.data;
-      const mappedResponse = rawResponse.result_list.map(el => { return {"device_id": el.device_id, "display_name": el.display_name, "active_state": el.active_state, "latest_device_point":el.latest_device_point}})
+      const mappedResponse = rawResponse.result_list.map(el => { return {"device_id": el.device_id, "display_name": el.display_name, "active_state": el.active_state, "device_lat":el.latest_device_point.lat, "device_lng":el.latest_device_point.lng}})
       const event = mappedResponse.find(event => event.device_id === device_id);
       console.log("B4:" + deviceShowStatus[event.device_id]);
       if(deviceShowStatus[event.device_id] == undefined || deviceShowStatus[event.device_id] == null) {

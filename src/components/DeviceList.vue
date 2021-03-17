@@ -1,82 +1,49 @@
 <template>
-  <div class="events container">
-    <h2 class="subtitle is-3">
-    List of Devices
-    </h2>
-    <!-- <div class="columns is-multiline">
-      <div v-for="event in events" :event="event" :key="event.device_id" class="column is-one-quarter">
-        <router-link :to="'/event/' + event.device_id">
-          <EventCard :event="event" />
-        </router-link>
-      </div>
-    </div> -->
-    <!-- <table class="table is-fullwidth">
-      <thead>
-        <tr>
-          <th v-for="(item, index) in table_columns" :key="index">{{item}}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(event, index) in events" :event="event" :key="event.device_id">
-          <th>{{index + 1}}</th>
-          <td><router-link :to="'/event/' + event.device_id"> {{event.device_id}} </router-link></td>
-          <td>{{event.display_name}}</td>
-          <td>{{event.active_state}}</td>
-          <td>{{roundCoordinate(event.latest_device_point.lat)}}</td>
-          <td>{{roundCoordinate(event.latest_device_point.lng)}}</td>
-        </tr>
-      </tbody>
-    </table> -->
+  <b-container class="center-text" fluid>
      <b-spinner v-if="isLoading"></b-spinner>
-     <b-table v-else
-      :items="table_rows"
-      :fields="table_columns"
-      :sort-by.sync="sortBy"
-      :sort-desc.sync="sortDesc"
-      hover
-      small
-      :no-sort-reset="true"
-      primary-key="device_id"
-      @row-clicked="expandAdditionalInfo">
-        <template #cell(show_details)="row">
-          <router-link :to="'/event/' + row.item.device_id">
-          <!-- @click="expandAdditionalInfo(row.item)" -->
-            <b-button size="sm" class="mr-2">
-              <!-- {{ row.detailsShowing ? 'Hide' : 'Show'}} Details -->
-              Show Details
-            </b-button>
-          </router-link>
-          <!-- As `row.showDetails` is one-way, we call the toggleDetails function on @change -->
-          <!-- <b-form-checkbox v-model="row.detailsShowing" @change="row.toggleDetails">
-            Details via check
-          </b-form-checkbox> -->
-        </template>
-        <template #row-details="row">
-          <b-card>
-            <b-row class="mb-2">
-              <b-col sm="3" class="text-sm-right"><b>INSERT MAP HERE:</b></b-col>
-            </b-row>
-
-            <b-row class="mb-2">
-              <b-col>{{ row.item.latitude}}</b-col>
-              <b-col>{{ row.item.longitude }}</b-col>
-            </b-row>
-
-            <b-button size="sm" @click="expandAdditionalInfo(row.item)">Hide Details</b-button>
-          </b-card>
-        </template>
-      </b-table>
-  </div>
+     <b-row v-else> 
+       <b-col>
+         <h2 class="subtitle is-3">
+          List of Devices
+          </h2>
+         <b-table 
+          :items="table_rows"
+          :fields="table_columns"
+          :sort-by.sync="sortBy"
+          :sort-desc.sync="sortDesc"
+          hover
+          small
+          :no-sort-reset="true"
+          primary-key="device_id">
+            <template #cell(show_details)="row">
+              <router-link :to="'/device/' + row.item.device_id">
+                <b-button size="sm" class="mr-2">
+                  Show Details
+                </b-button>
+              </router-link>
+              <!-- As `row.showDetails` is one-way, we call the toggleDetails function on @change -->
+              <!-- <b-form-checkbox v-model="row.detailsShowing" @change="row.toggleDetails">
+                Details via check
+              </b-form-checkbox> -->
+            </template>
+          </b-table>
+       </b-col>
+       <b-col>
+         <MapPlotter class="travel-map" :inp_markers="markers" />
+       </b-col>
+     </b-row>
+     
+  </b-container>
 </template>
 <script>
-// import EventCard from "@/components/EventCard";
-import DeviceDataService  from '@/services/DeviceDataService.js'; // NEW
+import MapPlotter from "@/components/map/MapPlotter";
+import DeviceDataService  from '@/services/DeviceDataService.js';
 import formatter from '../mixins.js';
 export default {
   name: "DeviceList",
   mixins: [formatter],
   components: {
-    // EventCard
+    MapPlotter
   },
   data() {
     return {
@@ -92,7 +59,8 @@ export default {
       sortBy: 'device_name',
       sortDesc: true,
       isLoading: true,
-      devices: []
+      devices: [],
+      markers: []
     };
   },
   created() {
@@ -116,21 +84,30 @@ export default {
             "device_id": el.device_id,
             "device_name": el.display_name,
             "status": el.active_state,
-            "latitude": Math.round(el.latest_device_point.lat * 1000) / 1000,
-            "longitude": Math.round(el.latest_device_point.lng * 1000) / 1000,
+            "latitude": Math.round(el.device_lat * 1000) / 1000,
+            "longitude": Math.round(el.device_lng * 1000) / 1000,
             _showDetails: false
           }
-        )
+        );
+        this.markers.push(
+            {
+              id: el.device_id,
+              position: {
+                lat: el.device_lat,
+                lng: el.device_lng
+              }
+            }
+        );
       })
-    },
-    expandAdditionalInfo(row) {
-      row._showDetails = !row._showDetails;
     }
   }
 };
 </script>
 <style lang="scss" scoped>
-  .events {
+  .center-text {
     text-align: center;
+  }
+  .travel-map {
+  height: 400px;
   }
 </style>

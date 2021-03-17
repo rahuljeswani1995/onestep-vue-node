@@ -19,7 +19,7 @@ export default new Router({
       component: () => import('../views/ManagePreferences.vue')
     },
     {
-      path: '/event/:id',
+      path: '/device/:id',
       name: 'eventSingle',
       component: () => import('../views/DeviceDetails.vue')
     }
