@@ -15,6 +15,9 @@
           small
           :no-sort-reset="true"
           primary-key="device_id">
+            <template #cell(icon)="row">
+              <img :src="'http://localhost:8080/get-icon?id='+row.item.device_id" width="30px">
+            </template>
             <template #cell(show_details)="row">
               <router-link :to="'/device/' + row.item.device_id">
                 <b-button size="sm" class="mr-2">
@@ -48,6 +51,7 @@ export default {
   data() {
     return {
       table_columns: [
+        {key: "icon", sortable: false},
         {key: "device_id", sortable: true},
         {key: "device_name", sortable: true},
         {key: "status", sortable: true},  
@@ -81,6 +85,7 @@ export default {
       devices.forEach(el => {
         this.table_rows.push(
           {
+            _icon: false,
             "device_id": el.device_id,
             "device_name": el.display_name,
             "status": el.active_state,
