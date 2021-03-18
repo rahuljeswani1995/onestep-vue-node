@@ -3,9 +3,14 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const axios = require('axios');
-const { raw } = require('body-parser');
+const fileUpload = require('express-fileupload');
 const app = express();
 const port = 8000;
+
+// enable files upload
+app.use(fileUpload({
+  createParentPath: true
+}));
 
 app.use(bodyParser.json());
 app.use(cors());
@@ -58,11 +63,47 @@ app.get('/get-device', (req, res) => {
   });
 
   app.put('/saveDevicePrefs', (req, res) => {
-      console.log(req.body);
+      // console.log(req.body);
       deviceShowStatus[req.body.device_id] = req.body.showStatus;
-      console.log(deviceShowStatus);
+      // console.log(deviceShowStatus);
       res.sendStatus(200);
   })
+
+  app.post('/update-icon', (req, res) => {
+    console.log("UPDATE ICON");
+    console.log(req.body);
+    res.sendStatus(200);
+  })
+
+  app.post('/upload-avatar', async (req, res) => {
+    try {
+        if(!req.files) {
+            res.send({
+                status: false,
+                message: 'No file uploaded'
+            });
+        } else {
+            //Use the name of the input field (i.e. "avatar") to retrieve the uploaded file
+            let avatar = req.files.image;
+            console.log(avatar);
+            //Use the mv() method to place the file in upload directory (i.e. "uploads")
+            avatar.mv('./uploads/' + avatar.name);
+
+            //send response
+            res.send({
+                status: true,
+                message: 'File is uploaded',
+                data: {
+                    name: avatar.name,
+                    mimetype: avatar.mimetype,
+                    size: avatar.size
+                }
+            });
+        }
+    } catch (err) {
+        res.status(500).send(err);
+    }
+  });
 
 // listen on the port
 app.listen(port);

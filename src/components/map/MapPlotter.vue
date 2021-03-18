@@ -40,7 +40,7 @@ export default {
       };
     },
     mapCenter() {
-      if(!Boolean(this.inp_markers[0]))
+      if(!this.inp_markers[0])
        return null;
       if(this.inp_markers.length == 1)
         return this.inp_markers[0].position;

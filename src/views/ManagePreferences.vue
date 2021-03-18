@@ -1,29 +1,15 @@
 <template>
   <div class="center-text container">
-    <b-spinner v-if="isLoading"></b-spinner>
+    <b-alert v-if="isError" show variant="danger">An error occured while loading this page. Please try again.</b-alert>
+    <b-spinner v-else-if="isLoading"></b-spinner>
     <b-row v-else>
-      <!-- <b-col>
-        <b-form @submit="onSubmit" @reset="onReset">
-          <b-form-group id="input-group-3" label="Food:" label-for="input-3">
-            <b-form-select
-              id="input-3"
-              v-model="form.food"
-              :options="foods"
-              required
-            ></b-form-select>
-          </b-form-group>
-
-          <b-button type="submit" variant="primary">Submit</b-button>
-          <b-button type="reset" variant="danger">Reset</b-button>
-        </b-form>
-      </b-col>     -->
       <b-col>
         <h2 class="subtitle is-3">
-        Hidden Devices
+        Manage Hidden Devices
         </h2>
         <b-table 
-          :items="table_rows"
-          :fields="table_columns"
+          :items="tableRows"
+          :fields="tableColumns"
           :sort-by.sync="sortBy"
           :sort-desc.sync="sortDesc"
           hover
@@ -39,16 +25,8 @@
                 @change="onRowCheckboxChange($event, row.item)"
               ></b-form-checkbox>
             </template>
-            <!-- <template v-slot:cell(isHidden)="data">
-              <b-form-checkbox
-                id="show-hide-checkbox"
-                class="mb-2"
-                v-model="data.item.isHidden"
-                switch> 
-              </b-form-checkbox> -->
-            <!-- </template> -->
           </b-table>
-          <b-button :disabled="!tableUpdated" class="mt-2" variant="primary" @click="onHiddenDevicesUpdate()">Update</b-button>
+          <b-button :disabled="devicesToUpdate.length == 0" class="mt-2" variant="primary" @click="onHiddenDevicesUpdate()">Update</b-button>
       </b-col>    
     </b-row>
 
@@ -66,12 +44,8 @@ export default {
   name: 'ManagePreferences',
   data() {
     return {
-      form: {
-        food: null
-      },
-      foods: ['a', 'b'],
       devices: [],
-      table_columns: [
+      tableColumns: [
         {key: "icon", sortable: false},
         {key: "device_id", sortable: true},
         {key: "device_name", sortable: true},
@@ -80,23 +54,26 @@ export default {
         {key: "longitude", sortable: false},
         {key: "isHidden", label: "Hidden", sortable: false},  
       ],
-      table_rows: [],
+      tableRows: [],
       sortBy: 'device_name',
       sortDesc: true,
       isLoading: true,
-      tableUpdated: false
+      // tableUpdated: false,
+      isError: false
+    }
+  },
+  computed: {
+    devicesToUpdate(){
+      return this.tableRows.filter(el => el.isHidden != true).map(el => el.device_id);
     }
   },
   created(){
       this.getDevicesData();
   },
   methods: {
-    async getPrefs() {
-      
-    },
     onRowCheckboxChange(value, item){
-      if(!this.tableUpdated)
-        this.tableUpdated = true;
+      // if(!this.tableUpdated)
+      //   this.tableUpdated = true;
       item.isHidden = value;
     },
     async getDevicesData() {
@@ -107,11 +84,14 @@ export default {
           this.prepareTableData(devices);
           this.isLoading = false;
         }).bind(this)
-      );
+      ).catch(err => {
+        this.isError = true;
+        this.isLoading = false;
+      });
     },
     prepareTableData(devices) {
       devices.forEach(el => {
-        this.table_rows.push(
+        this.tableRows.push(
           {
             "device_id": el.device_id,
             "device_name": el.display_name,
@@ -123,34 +103,36 @@ export default {
         );
       })
     },
-    onSubmit(event) {
-      event.preventDefault();
-      // send prefs to server
-      // DeviceDataService.saveDevicePrefs({"device_id": this.deviceDetails.device_id, "showStatus": this.devicePrefs.showStatus})
-      //   .then(resp => {
-      //     // this.isSaved = true;
-      //     this.reload();
-      //   });
-      
-    },
-    onReset(event) {
-      event.preventDefault();
-      
-    },
     onHiddenDevicesUpdate(){
-      console.log(this.table_rows);
-      let ids_to_update = this.table_rows.filter(el => el.isHidden != true).map(el => el.device_id);
-      DeviceDataService.unhideDevices({"device_ids": ids_to_update, "visible": 1})
+      // console.log(this.tableRows);
+      // let ids_to_update = this.tableRows.filter(el => el.isHidden != true).map(el => el.device_id);
+      DeviceDataService.unhideDevices({"device_ids": this.devicesToUpdate, "visible": 1})
         .then(resp => {
           // console.log(resp);
+          this.$bvToast.toast(`Hidden devices were successfully updated.`, {
+          autoHideDelay: 3000,
+          variant: 'success',
+          solid: true,
+          toaster: 'b-toaster-top-center',
+          noCloseButton: true
+          });
           this.reload();
+        }).catch(err => {
+          this.$bvToast.toast(`An error occurred while updating hidden devices. Please try again.`, {
+          autoHideDelay: 3000,
+          variant: 'danger',
+          solid: true,
+          toaster: 'b-toaster-top-center',
+          noCloseButton: true
+          });
         });
     },
     reload(){
       this.devices = [];
-      this.table_rows = [];
+      this.tableRows = [];
       this.isLoading = true;
-      this.tableUpdated = false;
+      // this.tableUpdated = false;
+      this.isError = false;
       this.getDevicesData();
     }
   }

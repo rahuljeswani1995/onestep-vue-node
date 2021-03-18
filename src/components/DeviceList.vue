@@ -1,14 +1,15 @@
 <template>
   <b-container class="center-text" fluid>
-     <b-spinner v-if="isLoading"></b-spinner>
+     <b-alert v-if="isError" show variant="danger">An error occured while loading this page. Please try again.</b-alert>
+     <b-spinner v-else-if="isLoading"></b-spinner>
      <b-row v-else> 
        <b-col>
          <h2 class="subtitle is-3">
           List of Devices
           </h2>
          <b-table 
-          :items="table_rows"
-          :fields="table_columns"
+          :items="tableRows"
+          :fields="tableColumns"
           :sort-by.sync="sortBy"
           :sort-desc.sync="sortDesc"
           hover
@@ -24,10 +25,6 @@
                   Show Details
                 </b-button>
               </router-link>
-              <!-- As `row.showDetails` is one-way, we call the toggleDetails function on @change -->
-              <!-- <b-form-checkbox v-model="row.detailsShowing" @change="row.toggleDetails">
-                Details via check
-              </b-form-checkbox> -->
             </template>
           </b-table>
        </b-col>
@@ -50,7 +47,7 @@ export default {
   },
   data() {
     return {
-      table_columns: [
+      tableColumns: [
         {key: "icon", sortable: false},
         {key: "device_id", sortable: true},
         {key: "device_name", sortable: true},
@@ -59,12 +56,13 @@ export default {
         {key: "longitude", sortable: false},
         {key: "show_details", sortable: false},  
       ],
-      table_rows: [],
+      tableRows: [],
       sortBy: 'device_name',
       sortDesc: true,
       isLoading: true,
       devices: [],
-      markers: []
+      markers: [],
+      isError: false
     };
   },
   created() {
@@ -79,11 +77,14 @@ export default {
           this.prepareTableData(devices);
           this.isLoading = false;
         }).bind(this)
-      );
+      ).catch(err => {
+        this.isError = true;
+        this.isLoading = false;
+      });
     },
     prepareTableData(devices) {
       devices.forEach(el => {
-        this.table_rows.push(
+        this.tableRows.push(
           {
             _icon: false,
             "device_id": el.device_id,

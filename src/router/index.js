@@ -14,13 +14,13 @@ export default new Router({
       component: Home
     },
     {
-      path: '/manage-prefs',
-      name: 'manage-prefs',
+      path: '/settings',
+      name: 'settings',
       component: () => import('../views/ManagePreferences.vue')
     },
     {
       path: '/device/:id',
-      name: 'eventSingle',
+      name: 'deviceDetails',
       component: () => import('../views/DeviceDetails.vue')
     }
   ]

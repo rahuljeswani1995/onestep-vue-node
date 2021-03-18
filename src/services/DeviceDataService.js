@@ -26,6 +26,17 @@ export default {
     // "http://localhost:8080/show-hide-devices"
     let res = await axios.put("http://localhost:8000/saveDevicePrefs/", reqBody);
     return res.data;
+  },
+  async uploadUserIcon(deviceId, formData) {
+    // "http://localhost:8080/update-icon"
+    let res = await axios.post("http://localhost:8000/upload-avatar", formData, 
+      {
+        params: {id: deviceId},
+        headers: {"Content-Type": "multipart/form-data"}
+      }
+      );
+    // console.log(res);
+    return res;
   }
 
 }
