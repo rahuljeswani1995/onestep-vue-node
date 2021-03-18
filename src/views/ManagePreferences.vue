@@ -30,6 +30,9 @@
           small
           :no-sort-reset="true"
           primary-key="device_id">
+            <template #cell(icon)="row">
+              <img :src="'http://localhost:8080/get-icon?id='+row.item.device_id" width="30px">
+            </template>
             <template #cell(isHidden)="row">
               <b-form-checkbox
                 v-model="row.item.isHidden"
@@ -69,6 +72,7 @@ export default {
       foods: ['a', 'b'],
       devices: [],
       table_columns: [
+        {key: "icon", sortable: false},
         {key: "device_id", sortable: true},
         {key: "device_name", sortable: true},
         {key: "status", sortable: true},  
